@@ -3,16 +3,9 @@ defmodule Aoc2025 do
   Documentation for `Aoc2025`.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Aoc2025.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def run(:challenge) do
+    out = "Running challenges...\n"
+    out = out <> "D1P1: #{Aoc2025.D1P1.run(:challenge)}\n"
+    IO.puts(out)
   end
 end

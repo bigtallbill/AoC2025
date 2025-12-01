@@ -1,21 +1,19 @@
 # Aoc2025
 
-**TODO: Add description**
+Advent of Code 2025. Done in Elixir.
 
-## Installation
+You can run challenges by running:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `aoc2025` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:aoc2025, "~> 0.1.0"}
-  ]
-end
+```shell
+iex -S mix
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/aoc2025>.
+Then for all:
+```shell
+iex(1)> Aoc2025.run(:challenge)
+```
 
+Then individually:
+```shell
+iex(1)> Aoc2025.D1P1.run(:challenge)
+```
