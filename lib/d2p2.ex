@@ -76,21 +76,22 @@ defmodule Aoc2025.D2P2 do
     do: Integer.to_string(number) |> has_unique_substr?
 
   def has_unique_substr?(number) when is_binary(number) do
-    has_unique_substr?(String.split(number, "", trim: true), 1)
+    number_split = String.split(number, "", trim: true)
+    has_unique_substr?(number_split, length(number_split), 1)
   end
 
   def has_unique_substr?(:found), do: true
   def has_unique_substr?(:exhausted), do: false
 
-  def has_unique_substr?(number, kernel_size) when is_list(number) do
+  def has_unique_substr?(number, number_length, kernel_size) when is_list(number) do
     cond do
-      kernel_size >= length(number) ->
+      kernel_size >= number_length ->
         has_unique_substr?(:exhausted)
 
       true ->
         case Enum.chunk_every(number, kernel_size) |> Enum.uniq() |> Enum.count() do
           1 -> has_unique_substr?(:found)
-          _ -> has_unique_substr?(number, kernel_size + 1)
+          _ -> has_unique_substr?(number, number_length, kernel_size + 1)
         end
     end
   end
