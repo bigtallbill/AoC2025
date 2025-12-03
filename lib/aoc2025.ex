@@ -8,7 +8,8 @@ defmodule Aoc2025 do
       {:d1p1, Aoc2025.D1P1},
       {:d1p2, Aoc2025.D1P2},
       {:d2p1, Aoc2025.D2P1},
-      {:d2p2, Aoc2025.D2P2}
+      {:d2p2, Aoc2025.D2P2},
+      {:d3p1, Aoc2025.D3P1}
     ]
 
     out = "Running challenges...\n"
