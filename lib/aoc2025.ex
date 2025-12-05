@@ -10,7 +10,9 @@ defmodule Aoc2025 do
       {:d2p1, Aoc2025.D2P1},
       {:d2p2, Aoc2025.D2P2},
       {:d3p1, Aoc2025.D3P1},
-      {:d3p2, Aoc2025.D3P2}
+      {:d3p2, Aoc2025.D3P2},
+      {:d4p1, Aoc2025.D4P1},
+      {:d4p2, Aoc2025.D4P2}
     ]
 
     out = "Running challenges...\n"
