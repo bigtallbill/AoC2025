@@ -9,14 +9,14 @@ defmodule Aoc2025.D6P2 do
     |> Enum.zip_reduce({0, %{}}, &process_columns/2)
   end
 
-  def process_columns([d1, d2, d3, operator], {total, constructed}) do
+  def process_columns([d1, d2, d3, d4, operator], {total, constructed}) do
     cond do
-      d1 == " " and d2 == " " and d3 == " " and operator == " " ->
+      d1 == " " and d2 == " " and d3 == " " and d4 == " " and operator == " " ->
         # todo calculate total using operator
         {total + calculate(constructed), %{}}
 
       true ->
-        new_value = add_char(d1) <> add_char(d2) <> add_char(d3)
+        new_value = add_char(d1) <> add_char(d2) <> add_char(d3) <> add_char(d4)
 
         constructed =
           Map.put(constructed, :values, Map.get(constructed, :values, []) ++ [new_value])
