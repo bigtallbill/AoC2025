@@ -6,9 +6,7 @@ defmodule Aoc2025.D7P2 do
   def run(data) when is_binary(data) do
     data
     |> String.split("\n", trim: true)
-    # add an extra entry just so we can use drop_every to remove the lines with only dots
-    |> then(fn lines -> ["blank"] ++ lines end)
-    |> Enum.drop_every(2)
+    |> Enum.take_every(2)
     |> Enum.map(&String.codepoints(&1))
     |> build_graph()
     |> depth_first_counter()
@@ -79,7 +77,7 @@ defmodule Aoc2025.D7P2 do
         end
       end)
 
-    {nodes, edges}
+    {nodes, edges, exit_row_y_idx}
   end
 
   def find_all_indicies(list, search) do
@@ -89,41 +87,25 @@ defmodule Aoc2025.D7P2 do
     |> Enum.map(fn {_v, idx} -> idx end)
   end
 
-  def depth_first_counter({[first | _rest], _edges} = graph) do
-    depth_first_counter(graph, first, [], 0)
+  def depth_first_counter({[first | _] = nodes, _edges, exit_y} = graph) do
+    # count ways to reach each node in top-down order. edges only go downward (it's a DAG)
+    nodes
+    |> Enum.sort_by(fn {y, _} -> y end)
+    |> Enum.reduce(Map.new([{first, 1}]), fn node, counts ->
+      node_count = Map.get(counts, node, 0)
+
+      graph
+      |> get_children(node)
+      |> Enum.reduce(counts, fn child, acc ->
+        Map.update(acc, child, node_count, &(&1 + node_count))
+      end)
+    end)
+    |> Enum.reduce(0, fn {{y, _x}, count}, acc ->
+      if y == exit_y, do: acc + count, else: acc
+    end)
   end
 
-  def depth_first_counter(:exhausted, paths) do
-    paths
-  end
-
-  def depth_first_counter({nodes, edges} = graph, current, visited, paths) do
-    children = get_children(graph, current)
-
-    to_visit = List.first(children |> Enum.filter(&(not Kernel.in(&1, visited))))
-
-    cond do
-      is_nil(to_visit) and current |> elem(0) == 0 ->
-        depth_first_counter(:exhausted, paths)
-
-      is_nil(to_visit) ->
-        parent = get_parent(graph, current)
-
-        # update visited if the current node isnt already visited
-        visited = if current not in visited, do: [current] ++ visited, else: visited
-
-        # count the paths if we reach an end node
-        paths = if current |> elem(0) == 8, do: paths + 1, else: paths
-
-        depth_first_counter(graph, parent, visited, paths)
-
-      true ->
-        visited = if current not in visited, do: [current] ++ visited, else: visited
-        depth_first_counter(graph, to_visit, visited, paths)
-    end
-  end
-
-  def get_children({_nodes, edges}, {parent_y, parent_x}) do
+  def get_children({_nodes, edges, _exit_y}, {parent_y, parent_x}) do
     Enum.reduce(edges, [], fn {{source_y, source_x}, child}, children ->
       if parent_x == source_x and parent_y == source_y do
         [child] ++ children
@@ -134,7 +116,7 @@ defmodule Aoc2025.D7P2 do
     |> Enum.sort(fn {ay, _ax}, {by, _bx} -> by > ay end)
   end
 
-  def get_parent({_nodes, edges}, {source_child_y, source_child_x}) do
+  def get_parent({_nodes, edges, _exit_y}, {source_child_y, source_child_x}) do
     case Enum.find(edges, fn {_parent, {child_y, child_x}} ->
            source_child_y == child_y and source_child_x == child_x
          end) do
