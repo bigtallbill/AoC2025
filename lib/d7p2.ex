@@ -115,13 +115,4 @@ defmodule Aoc2025.D7P2 do
     end)
     |> Enum.sort(fn {ay, _ax}, {by, _bx} -> by > ay end)
   end
-
-  def get_parent({_nodes, edges, _exit_y}, {source_child_y, source_child_x}) do
-    case Enum.find(edges, fn {_parent, {child_y, child_x}} ->
-           source_child_y == child_y and source_child_x == child_x
-         end) do
-      nil -> nil
-      {parent, _child} -> parent
-    end
-  end
 end
