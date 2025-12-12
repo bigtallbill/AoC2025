@@ -2,16 +2,25 @@ defmodule Aoc2025.Graph do
   alias Aoc2025.Graph.Node
   alias Aoc2025.Graph.Edge
 
-  defstruct [:nodes, :edges]
+  defstruct [:nodes, :edges, :node_lookup]
 
   @type t :: %__MODULE__{
           nodes: [Node.t()],
-          edges: [Edge.t()]
+          edges: [Edge.t()],
+          node_lookup: %{map() => Node.t()}
         }
 
   @spec new() :: %__MODULE__{}
   def new(nodes \\ [], edges \\ []) do
-    %__MODULE__{nodes: nodes, edges: edges}
+    node_lookup = build_node_lookup(nodes)
+    %__MODULE__{nodes: nodes, edges: edges, node_lookup: node_lookup}
+  end
+
+  defp build_node_lookup(nodes) do
+    Enum.reduce(nodes, %{}, fn node, acc ->
+      # Only store the first occurrence of each data value
+      Map.put_new(acc, node.data, node)
+    end)
   end
 
   def depth_first_walk(graph, start, callback) do
@@ -82,5 +91,9 @@ defmodule Aoc2025.Graph do
         end
       end)
     end
+  end
+
+  def get_node(graph, data) do
+    Map.get(graph.node_lookup, data)
   end
 end

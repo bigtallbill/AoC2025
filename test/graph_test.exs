@@ -11,14 +11,24 @@ defmodule GraphTest do
   end
 
   test "new graph with nodes" do
-    nodes = ["A", "B", "C"]
+    node_a = Node.new(%{id: "A"})
+    node_b = Node.new(%{id: "B"})
+    node_c = Node.new(%{id: "C"})
+    nodes = [node_a, node_b, node_c]
     graph = Graph.new(nodes)
     assert graph.nodes == nodes
     assert graph.edges == []
   end
 
   test "new graph with edges" do
-    edges = [{1, 2}, {2, 3}]
+    node_1 = Node.new(%{id: 1})
+    node_2 = Node.new(%{id: 2})
+    node_3 = Node.new(%{id: 3})
+
+    edge_1 = Edge.new(node_1, node_2, :forward)
+    edge_2 = Edge.new(node_2, node_3, :forward)
+    edges = [edge_1, edge_2]
+
     graph = Graph.new([], edges)
     assert graph.nodes == []
     assert graph.edges == edges
@@ -717,6 +727,202 @@ defmodule GraphTest do
       neighbors = Graph.get_neighbors(graph, node_a)
       assert length(neighbors) == 2
       assert Enum.all?(neighbors, &(&1 == node_b))
+    end
+  end
+
+  describe "get_node" do
+    test "finds node by exact data match" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A[id: A, value: 1]
+      #   B[id: B, value: 2]
+      #   C[id: C, value: 3]
+      # ```
+
+      node_a = Node.new(%{id: "A", value: 1})
+      node_b = Node.new(%{id: "B", value: 2})
+      node_c = Node.new(%{id: "C", value: 3})
+
+      graph = Graph.new([node_a, node_b, node_c], [])
+
+      # Find node with exact data match
+      found = Graph.get_node(graph, %{id: "B", value: 2})
+      assert found == node_b
+
+      # Find another node
+      found = Graph.get_node(graph, %{id: "A", value: 1})
+      assert found == node_a
+    end
+
+    test "returns nil when no node matches" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A[id: A]
+      #   B[id: B]
+      # ```
+
+      node_a = Node.new(%{id: "A"})
+      node_b = Node.new(%{id: "B"})
+
+      graph = Graph.new([node_a, node_b], [])
+
+      # Look for non-existent data
+      found = Graph.get_node(graph, %{id: "C"})
+      assert found == nil
+
+      # Partial match should not work (needs exact match)
+      found = Graph.get_node(graph, %{})
+      assert found == nil
+    end
+
+    test "returns first matching node when multiple exist" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A1[id: A]
+      #   A2[id: A]
+      #   B[id: B]
+      # ```
+      # Two nodes with same data
+
+      node_a1 = Node.new(%{id: "A"})
+      node_a2 = Node.new(%{id: "A"})
+      node_b = Node.new(%{id: "B"})
+
+      graph = Graph.new([node_a1, node_a2, node_b], [])
+
+      # Should return the first matching node
+      found = Graph.get_node(graph, %{id: "A"})
+      assert found == node_a1
+    end
+
+    test "works with empty graph" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      # ```
+      # Empty graph
+
+      graph = Graph.new([], [])
+
+      found = Graph.get_node(graph, %{id: "A"})
+      assert found == nil
+    end
+
+    test "works with complex data structures" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A[complex nested data]
+      #   B[simple data]
+      # ```
+
+      complex_data = %{
+        id: 1,
+        nested: %{
+          key: "value",
+          list: [1, 2, 3]
+        },
+        flag: true
+      }
+
+      node_a = Node.new(complex_data)
+      node_b = Node.new(%{simple: true})
+
+      graph = Graph.new([node_a, node_b], [])
+
+      # Find with exact complex data match
+      found = Graph.get_node(graph, complex_data)
+      assert found == node_a
+
+      # Slightly different data should not match
+      similar_data = %{
+        id: 1,
+        nested: %{
+          key: "value",
+          list: [1, 2, 3]
+        },
+        # Different value
+        flag: false
+      }
+
+      found = Graph.get_node(graph, similar_data)
+      assert found == nil
+    end
+
+    test "finds nodes in graph with edges" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A[id: A] --> B[id: B]
+      #   B --> C[id: C]
+      # ```
+
+      node_a = Node.new(%{id: "A"})
+      node_b = Node.new(%{id: "B"})
+      node_c = Node.new(%{id: "C"})
+
+      edges = [
+        Edge.new(node_a, node_b, :forward),
+        Edge.new(node_b, node_c, :forward)
+      ]
+
+      graph = Graph.new([node_a, node_b, node_c], edges)
+
+      # Finding nodes should work regardless of edges
+      found = Graph.get_node(graph, %{id: "B"})
+      assert found == node_b
+
+      found = Graph.get_node(graph, %{id: "C"})
+      assert found == node_c
+    end
+
+    test "lookup table is built correctly on graph creation" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A[id: A, value: 1]
+      #   B[id: B, value: 2]
+      #   C[id: C, value: 3]
+      # ```
+
+      node_a = Node.new(%{id: "A", value: 1})
+      node_b = Node.new(%{id: "B", value: 2})
+      node_c = Node.new(%{id: "C", value: 3})
+
+      graph = Graph.new([node_a, node_b, node_c], [])
+
+      # Verify lookup table has correct entries
+      assert map_size(graph.node_lookup) == 3
+      assert Map.get(graph.node_lookup, %{id: "A", value: 1}) == node_a
+      assert Map.get(graph.node_lookup, %{id: "B", value: 2}) == node_b
+      assert Map.get(graph.node_lookup, %{id: "C", value: 3}) == node_c
+    end
+
+    test "lookup table handles duplicate data correctly" do
+      # Mermaid diagram:
+      # ```mermaid
+      # graph LR
+      #   A1[id: shared]
+      #   A2[id: shared]
+      #   B[id: unique]
+      # ```
+      # Two nodes with same data, only first should be in lookup
+
+      node_a1 = Node.new(%{id: "shared"})
+      node_a2 = Node.new(%{id: "shared"})
+      node_b = Node.new(%{id: "unique"})
+
+      graph = Graph.new([node_a1, node_a2, node_b], [])
+
+      # Lookup table should have 2 entries (not 3)
+      assert map_size(graph.node_lookup) == 2
+
+      # First node with shared data should be in lookup
+      assert Map.get(graph.node_lookup, %{id: "shared"}) == node_a1
+      assert Map.get(graph.node_lookup, %{id: "unique"}) == node_b
     end
   end
 end
